@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
-@FeignClient(name = "microservice-name", url = "localhost:8081/api/v1/note")
+@FeignClient(name = "microservice-notes", url = "localhost:8081/api/v1/note")
 public interface NoteProxy {
 
     @PostMapping(value = "/add", consumes = "application/json")
