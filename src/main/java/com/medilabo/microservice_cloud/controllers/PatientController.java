@@ -1,12 +1,19 @@
 package com.medilabo.microservice_cloud.controllers;
 
 import com.medilabo.microservice_cloud.beans.PatientBean;
-import com.medilabo.microservice_cloud.proxies.PatientProxy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -14,20 +21,33 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class PatientController {
 
-    private PatientProxy patientProxy;
+    private RestTemplate restTemplate;
+
+    private LoadBalancerClient loadBalancerClient;
 
     @Autowired
-    public PatientController(PatientProxy patientProxy) {
-        this.patientProxy = patientProxy;
+    public PatientController(RestTemplate restTemplate, LoadBalancerClient loadBalancerClient) {
+        this.restTemplate = restTemplate;
+        this.loadBalancerClient = loadBalancerClient;
     }
-
 
     @GetMapping("/all")
-    public ResponseEntity<List <PatientBean>> findAllPatient() {
-        List <PatientBean> patients = patientProxy.findAllPatient();
-        return ResponseEntity.ok().body(patients);
+    public ResponseEntity <List<PatientBean>> findAllPatient() {
+        System.out.println("called cloud controller.");
+        ServiceInstance serviceInstance = loadBalancerClient.choose("microservice-patients");
+        URI uri = serviceInstance.getUri();
+        String url = uri + "/api/v1/patient/all";
+
+        ResponseEntity <PatientBean[]> response =
+                restTemplate.getForEntity(
+                        url,
+                        PatientBean[].class);
+        PatientBean[] patientBeans = response.getBody();
+        List <PatientBean> pb = new ArrayList <>(Arrays.asList(patientBeans));
+        return ResponseEntity.ok().body(pb);
     }
 
+    /*
     @PostMapping(path = "/add", consumes = "application/json")
     public ResponseEntity<PatientBean> addNewPatient(
             @RequestBody PatientBean patientBean
@@ -64,5 +84,7 @@ public class PatientController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+     */
 
 }
