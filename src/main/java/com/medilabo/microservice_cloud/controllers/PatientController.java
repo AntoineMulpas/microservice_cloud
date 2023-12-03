@@ -1,6 +1,7 @@
 package com.medilabo.microservice_cloud.controllers;
 
 import com.medilabo.microservice_cloud.beans.PatientBean;
+import com.medilabo.microservice_cloud.proxies.PatientProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
@@ -21,6 +22,16 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class PatientController {
 
+    /*
+    private final PatientProxy patientProxy;
+
+    @Autowired
+    public PatientController(PatientProxy patientProxy) {
+        this.patientProxy = patientProxy;
+    }
+
+     */
+
     private RestTemplate restTemplate;
 
     private LoadBalancerClient loadBalancerClient;
@@ -30,6 +41,16 @@ public class PatientController {
         this.restTemplate = restTemplate;
         this.loadBalancerClient = loadBalancerClient;
     }
+
+/*
+    @GetMapping("/all")
+    public ResponseEntity<List <PatientBean>> findAllPatient() {
+        System.out.println("Called from Cloud Controller.");
+        List <PatientBean> patients = patientProxy.findAllPatient();
+        return ResponseEntity.ok().body(patients);
+    }
+    /*
+ */
 
     @GetMapping("/all")
     public ResponseEntity <List<PatientBean>> findAllPatient() {
@@ -46,6 +67,7 @@ public class PatientController {
         List <PatientBean> pb = new ArrayList <>(Arrays.asList(patientBeans));
         return ResponseEntity.ok().body(pb);
     }
+
 
     /*
     @PostMapping(path = "/add", consumes = "application/json")
